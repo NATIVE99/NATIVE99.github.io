@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.8.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<meta name="description" content="String类型 使用场景单值缓存12set key valueget key 对象缓存123set user:1 value(json格式)mest user:1:name xiaoming user:1:balance 1888mget user:1:name user:1:balance  分布式锁123456setnx product:100001 true &#x2F;&#x2F;返回1代表取锁成功se">
+<meta property="og:type" content="article">
+<meta property="og:title" content="redis命令使用场景">
+<meta property="og:url" content="http://example.com/2024/08/23/redis%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF/index.html">
+<meta property="og:site_name" content="NATIVE&#39;s Blog">
+<meta property="og:description" content="String类型 使用场景单值缓存12set key valueget key 对象缓存123set user:1 value(json格式)mest user:1:name xiaoming user:1:balance 1888mget user:1:name user:1:balance  分布式锁123456setnx product:100001 true &#x2F;&#x2F;返回1代表取锁成功se">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-08-23T15:24:43.391Z">
+<meta property="article:modified_time" content="2024-08-23T15:25:56.914Z">
+<meta property="article:author" content="NATIVE">
+<meta property="article:tag" content="idea">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2024/08/23/redis%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2024/08/23/redis%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF/","path":"2024/08/23/redis命令使用场景/","title":"redis命令使用场景"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>redis命令使用场景 | NATIVE's Blog</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">NATIVE's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#String%E7%B1%BB%E5%9E%8B-%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">String类型 使用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%95%E5%80%BC%E7%BC%93%E5%AD%98"><span class="nav-number">1.1.</span> <span class="nav-text">单值缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E8%B1%A1%E7%BC%93%E5%AD%98"><span class="nav-number">1.2.</span> <span class="nav-text">对象缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81"><span class="nav-number">1.3.</span> <span class="nav-text">分布式锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%A1%E6%95%B0%E5%99%A8"><span class="nav-number">1.4.</span> <span class="nav-text">计数器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%85%A8%E5%B1%80%E5%BA%8F%E5%88%97%E5%8F%B7"><span class="nav-number">1.5.</span> <span class="nav-text">分布式系统全局序列号</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hash%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">2.</span> <span class="nav-text">Hash应用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E8%B1%A1%E7%BC%93%E5%AD%98-1"><span class="nav-number">2.1.</span> <span class="nav-text">对象缓存</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#List%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">3.</span> <span class="nav-text">List应用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%9F%E5%88%97"><span class="nav-number">3.1.</span> <span class="nav-text">队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%88"><span class="nav-number">3.2.</span> <span class="nav-text">栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97"><span class="nav-number">3.3.</span> <span class="nav-text">阻塞队列</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Set%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">4.</span> <span class="nav-text">Set应用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8A%BD%E5%A5%96"><span class="nav-number">4.1.</span> <span class="nav-text">抽奖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%82%B9%E8%B5%9E%E3%80%81%E6%94%B6%E8%97%8F%E3%80%81%E6%A0%87%E7%AD%BE"><span class="nav-number">4.2.</span> <span class="nav-text">点赞、收藏、标签</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E6%B3%A8"><span class="nav-number">4.3.</span> <span class="nav-text">关注</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B1%E5%90%8C%E5%85%B3%E6%B3%A8"><span class="nav-number">4.3.1.</span> <span class="nav-text">共同关注</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%AF%E8%83%BD%E8%AE%A4%E8%AF%86%E7%9A%84%E4%BA%BA"><span class="nav-number">4.3.2.</span> <span class="nav-text">可能认识的人</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%88%91%E5%85%B3%E6%B3%A8%E7%9A%84%E4%B9%9F%E5%85%B3%E6%B3%A8%E4%BB%96"><span class="nav-number">4.3.3.</span> <span class="nav-text">我关注的也关注他</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AD%9B%E9%80%89"><span class="nav-number">4.4.</span> <span class="nav-text">筛选</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Zset%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">5.</span> <span class="nav-text">Zset应用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%92%E8%A1%8C%E6%A6%9C"><span class="nav-number">5.1.</span> <span class="nav-text">排行榜</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Scan%E5%92%8CKeys%E5%91%BD%E4%BB%A4"><span class="nav-number">6.</span> <span class="nav-text">Scan和Keys命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Keys"><span class="nav-number">6.1.</span> <span class="nav-text">Keys</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Scan"><span class="nav-number">6.2.</span> <span class="nav-text">Scan</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">NATIVE</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/08/23/redis%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="NATIVE">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="NATIVE's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          redis命令使用场景
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2024-08-23 23:24:43 / 修改时间：23:25:56" itemprop="dateCreated datePublished" datetime="2024-08-23T23:24:43+08:00">2024-08-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/java/" itemprop="url" rel="index"><span itemprop="name">java</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <meta name="referrer" content="no-referrer" />
+
+<h2 id="String类型-使用场景"><a href="#String类型-使用场景" class="headerlink" title="String类型 使用场景"></a>String类型 使用场景</h2><h3 id="单值缓存"><a href="#单值缓存" class="headerlink" title="单值缓存"></a>单值缓存</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> key value</span><br><span class="line">get key</span><br></pre></td></tr></table></figure>
+<h3 id="对象缓存"><a href="#对象缓存" class="headerlink" title="对象缓存"></a>对象缓存</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> user:<span class="number">1</span> value(json格式)</span><br><span class="line">mest user:<span class="number">1</span>:name xiaoming user:<span class="number">1</span>:balance <span class="number">1888</span></span><br><span class="line">mget user:<span class="number">1</span>:name user:<span class="number">1</span>:balance </span><br></pre></td></tr></table></figure>
+<h3 id="分布式锁"><a href="#分布式锁" class="headerlink" title="分布式锁"></a>分布式锁</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">setnx product:<span class="number">100001</span> true //返回<span class="number">1</span>代表取锁成功</span><br><span class="line">setnx product:<span class="number">100001</span> true //返回<span class="number">0</span>代表取锁失败</span><br><span class="line"></span><br><span class="line"><span class="keyword">del</span> product:<span class="number">100001</span> //删除锁</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> product:<span class="number">100001</span> true ex <span class="number">10</span> nx //防止程序意外死锁</span><br></pre></td></tr></table></figure>
+<h3 id="计数器"><a href="#计数器" class="headerlink" title="计数器"></a>计数器</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">incr xxx //原子性+<span class="number">1</span></span><br></pre></td></tr></table></figure>
+<h3 id="分布式系统全局序列号"><a href="#分布式系统全局序列号" class="headerlink" title="分布式系统全局序列号"></a>分布式系统全局序列号</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">incrby <span class="built_in">id</span> <span class="number">1000</span>  //批量生成序列号</span><br></pre></td></tr></table></figure>
+<h2 id="Hash应用场景"><a href="#Hash应用场景" class="headerlink" title="Hash应用场景"></a>Hash应用场景</h2><h3 id="对象缓存-1"><a href="#对象缓存-1" class="headerlink" title="对象缓存"></a>对象缓存</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hmset user &#123;userId&#125;:name xxx &#123;userId&#125;:age xx</span><br><span class="line">例子:hmset user <span class="number">1</span>:name xiaoming <span class="number">1</span>:age <span class="number">20</span> </span><br><span class="line">hmget user <span class="number">1</span>:name <span class="number">1</span>:age</span><br></pre></td></tr></table></figure>
+
+<h2 id="List应用场景"><a href="#List应用场景" class="headerlink" title="List应用场景"></a>List应用场景</h2><h3 id="队列"><a href="#队列" class="headerlink" title="队列"></a>队列</h3><p>lpush+rpop</p>
+<h3 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h3><p>lpush+lpop</p>
+<h3 id="阻塞队列"><a href="#阻塞队列" class="headerlink" title="阻塞队列"></a>阻塞队列</h3><p>lpush+brpop</p>
+<h2 id="Set应用场景"><a href="#Set应用场景" class="headerlink" title="Set应用场景"></a>Set应用场景</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Set</span>常用操作</span><br><span class="line">SADD  key  member  [member ...]			//往集合key中存入元素，元素存在则忽略，</span><br><span class="line">							若key不存在则新建</span><br><span class="line">SREM  key  member  [member ...]			//从集合key中删除元素</span><br><span class="line">SMEMBERS  key					//获取集合key中所有元素</span><br><span class="line">SCARD  key					//获取集合key的元素个数</span><br><span class="line">SISMEMBER  key  member			//判断member元素是否存在于集合key中</span><br><span class="line">SRANDMEMBER  key  [count]			//从集合key中选出count个元素，元素不从key中删除</span><br><span class="line">SPOP  key  [count]				//从集合key中选出count个元素，元素从key中删除</span><br><span class="line"></span><br><span class="line"><span class="type">Set</span>运算操作</span><br><span class="line">SINTER  key  [key ...] 				//交集运算</span><br><span class="line">SINTERSTORE  destination  key  [key ..]		//将交集结果存入新集合destination中</span><br><span class="line">SUNION  key  [key ..] 				//并集运算</span><br><span class="line">SUNIONSTORE  destination  key  [key ...]		//将并集结果存入新集合destination中</span><br><span class="line">SDIFF  key  [key ...] 				//差集运算</span><br><span class="line">SDIFFSTORE  destination  key  [key ...]		//将差集结果存入新集合destination中</span><br></pre></td></tr></table></figure>
+<h3 id="抽奖"><a href="#抽奖" class="headerlink" title="抽奖"></a>抽奖</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sadd key &#123;<span class="built_in">id</span>&#125; //参加的加入集合</span><br><span class="line">smembers key   // 计算集合中的数量</span><br><span class="line">srandmember key &#123;count&#125; // 随机选中count数量的用户</span><br></pre></td></tr></table></figure>
+<h3 id="点赞、收藏、标签"><a href="#点赞、收藏、标签" class="headerlink" title="点赞、收藏、标签"></a>点赞、收藏、标签</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>) 点赞</span><br><span class="line">SADD  like:&#123;消息ID&#125;  &#123;用户ID&#125;</span><br><span class="line"><span class="number">2</span>) 取消点赞</span><br><span class="line">SREM like:&#123;消息ID&#125;  &#123;用户ID&#125;</span><br><span class="line"><span class="number">3</span>) 检查用户是否点过赞</span><br><span class="line">SISMEMBER  like:&#123;消息ID&#125;  &#123;用户ID&#125;</span><br><span class="line"><span class="number">4</span>) 获取点赞的用户列表</span><br><span class="line">SMEMBERS like:&#123;消息ID&#125;</span><br><span class="line"><span class="number">5</span>) 获取点赞用户数 </span><br><span class="line">SCARD like:&#123;消息ID&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="关注"><a href="#关注" class="headerlink" title="关注"></a>关注</h3><h4 id="共同关注"><a href="#共同关注" class="headerlink" title="共同关注"></a>共同关注</h4><p>使用多集合做交集 SINTER</p>
+<h4 id="可能认识的人"><a href="#可能认识的人" class="headerlink" title="可能认识的人"></a>可能认识的人</h4><p>多个集合做差集 SDIFF</p>
+<h4 id="我关注的也关注他"><a href="#我关注的也关注他" class="headerlink" title="我关注的也关注他"></a>我关注的也关注他</h4><p>元素是否在集合中SISMEMBER</p>
+<h3 id="筛选"><a href="#筛选" class="headerlink" title="筛选"></a>筛选</h3><p>使用交集</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">SADD  brand:huawei  P40</span><br><span class="line">SADD  brand:xiaomi  mi-<span class="number">10</span></span><br><span class="line">SADD  brand:iPhone iphone12</span><br><span class="line">SADD os:android  P40  mi-<span class="number">10</span></span><br><span class="line">SADD cpu:brand:intel  P40  mi-<span class="number">10</span></span><br><span class="line">SADD ram:8G  P40  mi-<span class="number">10</span>  iphone12</span><br><span class="line"></span><br><span class="line">SINTER  os:android  cpu:brand:intel  ram:8G -&gt; &#123;P40，mi-<span class="number">10</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Zset应用场景"><a href="#Zset应用场景" class="headerlink" title="Zset应用场景"></a>Zset应用场景</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">ZSet常用操作</span><br><span class="line">ZADD key score member [[score member]…]	//往有序集合key中加入带分值元素</span><br><span class="line">ZREM key member [member …]		//从有序集合key中删除元素</span><br><span class="line">ZSCORE key member 			//返回有序集合key中元素member的分值</span><br><span class="line">ZINCRBY key increment member		//为有序集合key中元素member的分值加上increment </span><br><span class="line">ZCARD key				//返回有序集合key中元素个数</span><br><span class="line">ZRANGE key start stop [WITHSCORES]	//正序获取有序集合key从start下标到stop下标的元素</span><br><span class="line">ZREVRANGE key start stop [WITHSCORES]	//倒序获取有序集合key从start下标到stop下标的元素</span><br><span class="line"></span><br><span class="line">Zset集合操作</span><br><span class="line">ZUNIONSTORE destkey numkeys key [key ...] 	//并集计算</span><br><span class="line">ZINTERSTORE destkey numkeys key [key …]	//交集计算</span><br></pre></td></tr></table></figure>
+<h3 id="排行榜"><a href="#排行榜" class="headerlink" title="排行榜"></a>排行榜</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>）点击新闻</span><br><span class="line">ZINCRBY  hotNews:<span class="number">20190819</span>  <span class="number">1</span>  守护香港</span><br><span class="line"><span class="number">2</span>）展示当日排行前十</span><br><span class="line">ZREVRANGE  hotNews:<span class="number">20190819</span>  <span class="number">0</span>  <span class="number">9</span>  WITHSCORES </span><br><span class="line"><span class="number">3</span>）七日搜索榜单计算</span><br><span class="line">ZUNIONSTORE  hotNews:<span class="number">20190813</span>-<span class="number">20190819</span>  <span class="number">7</span> </span><br><span class="line">hotNews:<span class="number">20190813</span>  hotNews:<span class="number">20190814.</span>.. hotNews:<span class="number">20190819</span></span><br><span class="line"><span class="number">4</span>）展示七日排行前十</span><br><span class="line">ZREVRANGE hotNews:<span class="number">20190813</span>-<span class="number">20190819</span>  <span class="number">0</span>  <span class="number">9</span>  WITHSCORES</span><br></pre></td></tr></table></figure>
+
+<h2 id="Scan和Keys命令"><a href="#Scan和Keys命令" class="headerlink" title="Scan和Keys命令"></a>Scan和Keys命令</h2><h3 id="Keys"><a href="#Keys" class="headerlink" title="Keys"></a>Keys</h3><p>全量遍历键，用来列出所有满足特定正则字符串规则的key，当redis数据量比较大时，性能比较差，要避免使用</p>
+<h3 id="Scan"><a href="#Scan" class="headerlink" title="Scan"></a>Scan</h3><p>SCAN cursor [MATCH pattern] [COUNT count]<br>注意：但是scan并非完美无瑕， 如果在scan的过程中如果有键的变化（增加、 删除、 修改） ，那么遍历效果可能会碰到如下问题： 新增的键可能没有遍历到， 遍历出了重复的键等情况， 也就是说scan并不能保证完整的遍历出来所有的键， 这些是我们在开发时需要考虑的。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/idea/" rel="tag"># idea</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/12/11/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" rel="prev" title="类加载机制深度解析">
+                  <i class="fa fa-chevron-left"></i> 类加载机制深度解析
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">NATIVE</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
